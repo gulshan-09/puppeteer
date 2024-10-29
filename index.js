@@ -27,7 +27,7 @@ app.get("/api", async (req, res) => {
     let browser = await puppeteer.launch(options);
 
     let page = await browser.newPage();
-    await page.goto("https://anikoto.fun");
+    await page.goto("https://anikoto.fun", { timeout: 10000 });
     res.send(await page.title());
   } catch (err) {
     console.error(err);
