@@ -1,4 +1,5 @@
-const express = require("express")();
+const app = require("express")();
+
 let chrome = {};
 let puppeteer;
 
@@ -9,18 +10,12 @@ if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
   puppeteer = require("puppeteer");
 }
 
-express.get("/api", async (req, res) => {
+app.get("/api", async (req, res) => {
   let options = {};
 
   if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
     options = {
-      args: [
-        ...chrome.args,
-        "--hide-scrollbars",
-        "--disable-web-security",
-        "--no-sandbox", // Added for additional compatibility
-        "--disable-setuid-sandbox" // Added for additional compatibility
-      ],
+      args: [...chrome.args, "--hide-scrollbars", "--disable-web-security"],
       defaultViewport: chrome.defaultViewport,
       executablePath: await chrome.executablePath,
       headless: true,
@@ -29,26 +24,19 @@ express.get("/api", async (req, res) => {
   }
 
   try {
-    const browser = await puppeteer.launch(options);
-    const page = await browser.newPage();
+    let browser = await puppeteer.launch(options);
 
-    await page.goto("https://www.google.com", {
-      waitUntil: "domcontentloaded",
-      timeout: 5000
-    });
-
-    const title = await page.title();
-    res.send(title);
-
-    await browser.close();
+    let page = await browser.newPage();
+    await page.goto("https://anikoto.fun");
+    res.send(await page.title());
   } catch (err) {
-    console.error('Error during Puppeteer operation:', err);
-    res.status(500).send('Error fetching title: ' + err.message);
+    console.error(err);
+    return null;
   }
 });
 
-express.listen(process.env.PORT || 3000, () => {
+app.listen(process.env.PORT || 3000, () => {
   console.log("Server started");
 });
 
-module.exports = express;
+module.exports = app;
